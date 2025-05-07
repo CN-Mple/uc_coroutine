@@ -52,6 +52,7 @@ void *__attribute__((naked)) generator_yield(void *arg)
                 "push {r4}\n"
                 "push {r5}\n"
                 "push {r6}\n"
+                "push {r7}\n"
         
                 "mov r1, sp\n"
                 "bl generator_return\n"
@@ -69,8 +70,8 @@ void __attribute__((naked)) generator_restore_context_with_return(void *arg, voi
 {
         __asm__(
                 "mov sp, r1\n"
-                "mov r7, r0\n"
         
+                "pop {r7}\n"
                 "pop {r6}\n"
                 "pop {r5}\n"
                 "pop {r4}\n"
@@ -78,9 +79,9 @@ void __attribute__((naked)) generator_restore_context_with_return(void *arg, voi
                 "pop {r3}\n"
                 "pop {r2}\n"
                 "pop {r1}\n"
+                "mov lr, r0\n"
                 "pop {r0}\n"
-        
-                "mov r0, r7\n"
+                "mov r0, lr\n"
         
                 "pop {pc}\n"
         );
@@ -99,6 +100,7 @@ void *__attribute__((naked)) generator_next(struct Generator *g, void *arg)
                 "push {r4}\n"
                 "push {r5}\n"
                 "push {r6}\n"
+                "push {r7}\n"
         
                 "mov r2, sp\n"
                 "bl generator_switch_context\n"
@@ -135,6 +137,7 @@ void __attribute__((naked)) generator_restore_context(void *rsp)
         __asm__(
                 "mov sp, r0\n"
                 
+                "pop {r7}\n"
                 "pop {r6}\n"
                 "pop {r5}\n"
                 "pop {r4}\n"
@@ -168,12 +171,13 @@ struct Generator *generator_create(void (*task)(void *))
         *(--rsp) = generator_finish_current;
         /* lr */
         *(--rsp) = task;
-        /* r0 - r6 */
+        /* r0 - r7 */
         *(--rsp) = 0;
         *(--rsp) = 0;
         *(--rsp) = 0;
         *(--rsp) = 0;
         
+        *(--rsp) = 0;
         *(--rsp) = 0;
         *(--rsp) = 0;
         *(--rsp) = 0;
