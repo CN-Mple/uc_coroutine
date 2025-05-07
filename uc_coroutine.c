@@ -68,6 +68,11 @@ void generator_return(void *arg, void *rsp)
 
 void __attribute__((naked)) generator_restore_context_with_return(void *arg, void *rsp)
 {
+        /*
+                Why so is fxxking interesting!
+                I don't know how to save r0 in the absence of a register group
+                But oh my god, I don't need the lr register because I'm going back to the Lord
+        */
         __asm__(
                 "mov sp, r1\n"
         
@@ -115,19 +120,16 @@ void generator_switch_context(struct Generator *g, void *arg, void *rsp)
                 g->fresh = false;
                 void **rsp = (void**)((uint8_t*)g->stack_base + STACK_CAPACITY);
                 //******************************************
-                //^                                        ^
-                //g->stack_base                            rsp
+                //^                                   ^    ^
+                //g->stack_base                       dead top
                 *(rsp - 3) = arg;
         }
         generator_restore_context(g->rsp);
         /*
-                ************************************
-                ^                        ^
-                jump                     func
-                When entering func for the first time,
-                it will be pushed into the stack lr register,
-                and the lr value is here
-                so we just pop complete func to over all things
+                When entering the function for the first time
+                It will be pushed into the stack lr register.
+                The lr value is here
+                We just need to pop up the end function to mark death and end everything
         */
         __asm__("pop {pc}\n");
 }
